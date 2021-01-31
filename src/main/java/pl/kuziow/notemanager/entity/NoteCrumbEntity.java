@@ -28,12 +28,14 @@ public class NoteCrumbEntity {
     @Column(name = "created_on")
     private LocalDateTime createdOn;
 
-    @Column(name = "updated_on")
-    private LocalDateTime updatedOn;
-
     @ManyToOne
-    @JoinColumn(name = "note_id")
+    @JoinColumn(name = "note_entity_id")
     private NoteEntity noteEntity;
+
+    @PrePersist
+    public void prePersist() {
+        createdOn = LocalDateTime.now();
+    }
 
     public long getId() {
         return id;
@@ -75,13 +77,6 @@ public class NoteCrumbEntity {
         this.createdOn = createdOn;
     }
 
-    public LocalDateTime getUpdatedOn() {
-        return updatedOn;
-    }
-
-    public void setUpdatedOn(LocalDateTime updatedOn) {
-        this.updatedOn = updatedOn;
-    }
 
     public NoteEntity getNoteEntity() {
         return noteEntity;

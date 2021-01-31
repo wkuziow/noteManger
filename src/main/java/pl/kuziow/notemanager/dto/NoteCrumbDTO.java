@@ -16,8 +16,6 @@ public class NoteCrumbDTO {
 
     private LocalDateTime createdOn;
 
-    private LocalDateTime updatedOn;
-
     private NoteEntity noteEntity;
 
     public long getId() {
@@ -60,13 +58,6 @@ public class NoteCrumbDTO {
         this.createdOn = createdOn;
     }
 
-    public LocalDateTime getUpdatedOn() {
-        return updatedOn;
-    }
-
-    public void setUpdatedOn(LocalDateTime updatedOn) {
-        this.updatedOn = updatedOn;
-    }
 
     public NoteEntity getNoteEntity() {
         return noteEntity;

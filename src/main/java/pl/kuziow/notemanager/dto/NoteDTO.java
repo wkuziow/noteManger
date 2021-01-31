@@ -12,6 +12,8 @@ public class NoteDTO {
 
     private String noteId;
 
+    private boolean deleted;
+
     private LocalDateTime createdOn;
 
     private LocalDateTime updatedOn;
@@ -56,5 +58,13 @@ public class NoteDTO {
 
     public void setNoteCrumbEntityList(List<NoteCrumbEntity> noteCrumbEntityList) {
         this.noteCrumbEntityList = noteCrumbEntityList;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
     }
 }

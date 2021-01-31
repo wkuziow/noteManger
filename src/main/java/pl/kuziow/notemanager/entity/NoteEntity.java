@@ -11,8 +11,11 @@ public class NoteEntity {
     @GeneratedValue
     private long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, name = "noteID")
     private String noteId;
+
+    @Column(columnDefinition = "boolean default false")
+    private boolean deleted;
 
     @Column(name = "created_on")
     private LocalDateTime createdOn;
@@ -20,7 +23,7 @@ public class NoteEntity {
     @Column(name = "updated_on")
     private LocalDateTime updatedOn;
 
-    @OneToMany(mappedBy = "note", cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.PERSIST, mappedBy = "noteEntity")
     private List<NoteCrumbEntity> noteCrumbEntityList;
 
     @PrePersist
@@ -63,5 +66,21 @@ public class NoteEntity {
 
     public void setUpdatedOn(LocalDateTime updatedOn) {
         this.updatedOn = updatedOn;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
+
+    public List<NoteCrumbEntity> getNoteCrumbEntityList() {
+        return noteCrumbEntityList;
+    }
+
+    public void setNoteCrumbEntityList(List<NoteCrumbEntity> noteCrumbEntityList) {
+        this.noteCrumbEntityList = noteCrumbEntityList;
     }
 }

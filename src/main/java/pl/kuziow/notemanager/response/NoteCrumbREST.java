@@ -14,8 +14,6 @@ public class NoteCrumbREST {
 
     private LocalDateTime createdOn;
 
-    private LocalDateTime updatedOn;
-
     public String getNoteId() {
         return noteId;
     }
@@ -56,11 +54,4 @@ public class NoteCrumbREST {
         this.createdOn = createdOn;
     }
 
-    public LocalDateTime getUpdatedOn() {
-        return updatedOn;
-    }
-
-    public void setUpdatedOn(LocalDateTime updatedOn) {
-        this.updatedOn = updatedOn;
-    }
 }
