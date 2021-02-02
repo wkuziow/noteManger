@@ -1,6 +1,7 @@
 package pl.kuziow.notemanager.service.implementation;
 
 import org.modelmapper.ModelMapper;
+import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import pl.kuziow.notemanager.Utils.Utils;
@@ -29,14 +30,10 @@ public class NoteServiceImplementation implements NoteService {
     @Autowired
     NoteCrumbRepository noteCrumbRepository;
 
+    final ModelMapper modelMapper = new ModelMapper();
+
     @Override
     public NoteCrumbREST createNote(NoteCrumbDTO noteCrumbDTO) {
-
-        ModelMapper modelMapper = new ModelMapper();
-
-        NoteCrumbEntity noteCrumbEntity = modelMapper.map(noteCrumbDTO, NoteCrumbEntity.class);
-        noteCrumbEntity.setNoteCrumbId(utils.generateNoteCrumbId(30));
-        noteCrumbEntity.prePersist();
 
         NoteEntity noteEntity = new NoteEntity();
         String noteId = utils.generateNoteId(30);
@@ -44,12 +41,23 @@ public class NoteServiceImplementation implements NoteService {
         noteEntity.prePersist();
         NoteEntity savedNoteEntity = noteRepository.save(noteEntity);
 
-        noteCrumbEntity.setNoteEntity(savedNoteEntity);
-        NoteCrumbEntity savedNoteCrumbEntity = noteCrumbRepository.save(noteCrumbEntity);
+        NoteCrumbEntity savedNoteCrumbEntity = createAndSaveNoteCrumbEntity(noteCrumbDTO, savedNoteEntity);
 
+        return createNoteCrumbREST(noteId, savedNoteCrumbEntity);
+    }
+
+    public NoteCrumbEntity createAndSaveNoteCrumbEntity(NoteCrumbDTO noteCrumbDTO, NoteEntity savedNoteEntity) {
+        NoteCrumbEntity noteCrumbEntity = modelMapper.map(noteCrumbDTO, NoteCrumbEntity.class);
+        noteCrumbEntity.setNoteCrumbId(utils.generateNoteCrumbId(30));
+        noteCrumbEntity.prePersist();
+
+        noteCrumbEntity.setNoteEntity(savedNoteEntity);
+        return noteCrumbRepository.save(noteCrumbEntity);
+    }
+
+    public NoteCrumbREST createNoteCrumbREST(String noteId, NoteCrumbEntity savedNoteCrumbEntity) {
         NoteCrumbREST noteCrumbREST = modelMapper.map(savedNoteCrumbEntity, NoteCrumbREST.class);
         noteCrumbREST.setNoteId(noteId);
-
         return noteCrumbREST;
     }
 
@@ -63,28 +71,20 @@ public class NoteServiceImplementation implements NoteService {
     @Override
     public NoteCrumbREST updateNote(String noteId, NoteCrumbDTO noteCrumbDTO) {
         NoteEntity noteEntity = noteRepository.findByNoteId(noteId);
-        ModelMapper modelMapper = new ModelMapper();
-        NoteCrumbEntity noteCrumbEntity = modelMapper.map(noteCrumbDTO, NoteCrumbEntity.class);
-        noteCrumbEntity.setNoteCrumbId(utils.generateNoteCrumbId(30));
-        noteCrumbEntity.prePersist();
         noteEntity.preUpdate();
-
         NoteEntity savedNoteEntity = noteRepository.save(noteEntity);
 
-        noteCrumbEntity.setNoteEntity(savedNoteEntity);
+        //ModelMapper modelMapper = new ModelMapper();
+        NoteCrumbEntity savedNoteCrumbEntity = createAndSaveNoteCrumbEntity(noteCrumbDTO, savedNoteEntity);
 
-        NoteCrumbEntity savedNoteCrumbEntity = noteCrumbRepository.save(noteCrumbEntity);
-
-        NoteCrumbREST noteCrumbREST = modelMapper.map(savedNoteCrumbEntity, NoteCrumbREST.class);
-        noteCrumbREST.setNoteId(noteId);
-
-        return noteCrumbREST;
+        return createNoteCrumbREST(noteId, savedNoteCrumbEntity);
 
     }
 
     @Override
     public List<NoteCrumbREST> getListOfAllNotes() {
         List<NoteCrumbEntity> noteCrumbEntityList = noteRepository.findAll().stream()
+                .filter(e -> !e.isDeleted())
                 .map(c -> c.getNoteCrumbEntityList().stream().
                         sorted(Comparator.comparing(NoteCrumbEntity::getCreatedOn).reversed())
                         .collect(Collectors.toList())
@@ -92,15 +92,22 @@ public class NoteServiceImplementation implements NoteService {
                         collect(Collectors.toList());
         List<NoteCrumbREST> noteCrumbRESTS = new ArrayList<>();
 
-        ModelMapper modelMapper = new ModelMapper();
+       // ModelMapper modelMapper = new ModelMapper();
+        modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
+
 
         for (NoteCrumbEntity e : noteCrumbEntityList) {
-            NoteCrumbREST noteCrumbREST = modelMapper.map(e, NoteCrumbREST.class);
-            noteCrumbRESTS.add(noteCrumbREST);
+            String noteId = e.getNoteEntity().getNoteId();
+            createNoteCrumRestAndAddToList(noteCrumbRESTS, e, noteId);
         }
         return noteCrumbRESTS;
 
 
+    }
+
+    public void createNoteCrumRestAndAddToList(List<NoteCrumbREST> noteCrumbRESTS, NoteCrumbEntity e, String noteId) {
+        NoteCrumbREST noteCrumbREST = createNoteCrumbREST(noteId, e);
+        noteCrumbRESTS.add(noteCrumbREST);
     }
 
     @Override
@@ -108,11 +115,11 @@ public class NoteServiceImplementation implements NoteService {
         List<NoteCrumbEntity> noteCrumbEntityList = noteRepository.findByNoteId(noteId).getNoteCrumbEntityList();
         List<NoteCrumbREST> noteCrumbRESTS = new ArrayList<>();
 
-        ModelMapper modelMapper = new ModelMapper();
+        //ModelMapper modelMapper = new ModelMapper();
+        modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
 
         for (NoteCrumbEntity e : noteCrumbEntityList) {
-            NoteCrumbREST noteCrumbREST = modelMapper.map(e, NoteCrumbREST.class);
-            noteCrumbRESTS.add(noteCrumbREST);
+            createNoteCrumRestAndAddToList(noteCrumbRESTS, e, noteId);
         }
         return noteCrumbRESTS;
     }

@@ -10,6 +10,7 @@ import pl.kuziow.notemanager.response.NoteCrumbREST;
 import pl.kuziow.notemanager.response.OperationStatusModel;
 import pl.kuziow.notemanager.response.RequestOperationName;
 import pl.kuziow.notemanager.response.RequestOperationStatus;
+import pl.kuziow.notemanager.service.ErrorService;
 import pl.kuziow.notemanager.service.NoteService;
 
 import java.util.List;
@@ -21,34 +22,32 @@ public class NoteController {
     @Autowired
     NoteService noteService;
 
+    @Autowired
+    ErrorService errorService;
+
     @GetMapping(
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     public List<NoteCrumbREST> getAllNotes() {
-        List<NoteCrumbREST> noteCrumbRESTS = noteService.getListOfAllNotes();
-        return noteCrumbRESTS;
+        return noteService.getListOfAllNotes();
     }
 
     @GetMapping(path = "/{noteId}",
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     public List<NoteCrumbREST> getHistoryOfNote(@PathVariable String noteId) {
-        //todo error service chceck if noteId exists
-        List<NoteCrumbREST> noteCrumbRESTS = noteService.getHistoryOfNote(noteId);
-        return noteCrumbRESTS;
+        errorService.noteExists(noteId);
+        return noteService.getHistoryOfNote(noteId);
     }
 
-
-        //TODO od tego zaczac cos sie zle ustawiaja noteId przy mapowaniu jak sie zwara lista w obu metodach get
 
     @PostMapping(
             consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     public NoteCrumbREST postMethod(@RequestBody NoteCrumbRequest noteCrumbRequest) {
-        //todo error service chech required fields
+        errorService.checkRequiredFields(noteCrumbRequest);
         ModelMapper modelMapper = new ModelMapper();
         NoteCrumbDTO noteCrumbDTO = modelMapper.map(noteCrumbRequest, NoteCrumbDTO.class);
-        NoteCrumbREST noteCrumbREST = noteService.createNote(noteCrumbDTO);
 
-        return noteCrumbREST;
+        return noteService.createNote(noteCrumbDTO);
     }
 
 
@@ -56,17 +55,16 @@ public class NoteController {
             consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     public NoteCrumbREST putMethod(@PathVariable String noteId, @RequestBody NoteCrumbRequest noteCrumbRequest) {
-        //todo check if note with given id exists
+        errorService.noteExists(noteId);
         ModelMapper modelMapper = new ModelMapper();
         NoteCrumbDTO noteCrumbDTO = modelMapper.map(noteCrumbRequest, NoteCrumbDTO.class);
-        NoteCrumbREST noteCrumbREST = noteService.updateNote(noteId, noteCrumbDTO);
-        return noteCrumbREST;
+        return noteService.updateNote(noteId, noteCrumbDTO);
     }
 
     @DeleteMapping(path = "/{noteId}",
             produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     public OperationStatusModel deleteUser(@PathVariable String noteId) {
-        //todo check if note with given id exists
+        errorService.noteExists(noteId);
         OperationStatusModel operationStatusModel = new OperationStatusModel();
         operationStatusModel.setOperationName(RequestOperationName.DELETE.name());
         noteService.deteleNote(noteId);
